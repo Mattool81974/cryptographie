@@ -208,7 +208,7 @@ class MBordure(MWidget): #Définition d'une représentant un widget avec une bor
             self.bordureRayonDB = bordureRayon
         self.bordureCouleur = bordureCouleur
     def _renderBeforeHierarchy(self, surface): #Ré-implémentation de la fonction pour afficher la bordure
-        surface
+        surface.fill((0, 0, 0, 0))
         draw.rect(surface, self.bordureCouleur, (0, 0, self.taille[0], self.taille[1]), border_bottom_left_radius=self.bordureRayonGB, border_top_left_radius=self.bordureRayonGH, border_bottom_right_radius=self.bordureRayonDB, border_top_right_radius=self.bordureRayonDH) #Dessiner la bordure
         draw.rect(surface, self.arrierePlanCouleur, (self.bordureLargeurGauche, self.bordureLargeurHaut, self.taille[0] - (self.bordureLargeurGauche + self.bordureLargeurDroite), self.taille[1] - (self.bordureLargeurBas + self.bordureLargeurDroite)), border_bottom_left_radius=self.bordureRayonGB, border_top_left_radius=self.bordureRayonGH, border_bottom_right_radius=self.bordureRayonDB, border_top_right_radius=self.bordureRayonDH) #Dessiner l'intèrieur de la bordure
         return surface
