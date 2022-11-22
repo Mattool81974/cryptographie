@@ -11,6 +11,7 @@ class MWidget: #Définition d'une classe représentant tout les widgets dans la 
     def __init__(self, taille, position, parent = None, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur d'un widget avec comme paramètre la taille
         self.arrierePlanCouleur = arrierePlanCouleur
         self.curseurSurvol = curseurSurvol
+        self._deltaTime = time_ns()
         self.enfant = [] #Attributs de type liste comprenant tout les enfants de la fenêtre
         self.fenetrePrincipale = self #Variable contenant la fenêtre principale
         self.globalPosition = position #Variable contenant la position par rapport à la fenêtre principale
@@ -91,10 +92,11 @@ class MWidget: #Définition d'une classe représentant tout les widgets dans la 
 
 
 class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre principale
-    def __init__(self, fenetre, titre = "Fenêtre MGui", arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW, arrierePlanImage=""): #Constructeur qui prend la taille en paramètre
+    def __init__(self, fenetre, titre = "Fenêtre MGui", arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW, arrierePlanImage="", arrierePlanImageAlignement="GH", arrierePlanImageParSeconde=24): #Constructeur qui prend la taille en paramètre
         self.type = "Fenetre"
         MWidget.__init__(self, fenetre.get_size(), (0, 0), None, arrierePlanCouleur, curseurSurvol) #Constructeur parent
         self.arrierePlanImage = None
+        self.arrierePlanImageAlignement = arrierePlanImageAlignement
         self.actuelFrameGif = 0 #Frame du gif actuel
         if os.path.exists(arrierePlanImage): #Charger l'image de l'arrière plan
             self.arrierePlanImage = image.load(arrierePlanImage)
@@ -107,6 +109,8 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
                 self.actuelFrameGif = 0
             else: #Le fichier n'existe pas
                 self.arrierePlanImage = None
+        self.arrierePlanImageParSeconde = arrierePlanImageParSeconde #Vitesse du gif d'arrière plan en images par secondes
+        self.arrierePlanImageParSecondeEcoule = 0 #Temps écoulé depuis la dernière update du gif
         self.curseur = SYSTEM_CURSOR_ARROW #Curseur de l'application
         self.deltaTime = 0 #Temps entre 2 frames
         self.fenetre = fenetre
@@ -118,21 +122,44 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
         self.tempsDExecution = 0 #Temps d'éxécution depuis le dernier comptage des fps
 
     def _renderBeforeHierarchy(self, surface): #Ré-implémentation de la fonction pour afficher l'image d'arrière plan
+        img = None #Création de la variable avec l'image a appliquer
         if self.arrierePlanImage != None: #Le fichier est un gif ou n'existe pas
             if type(self.arrierePlanImage) == str: #Le fichier existe
                 if os.path.exists(self.arrierePlanImage):
                     fichiers = os.listdir(self.arrierePlanImage)
                     img = image.load(self.arrierePlanImage + "/" + fichiers[self.actuelFrameGif]) #Image a affiché lors de cette frame
-                    surface.blit(img, (0, 0, 0, 0)) #Afficher l(image sur la surface
-                    self.actuelFrameGif += 1
-                    if self.actuelFrameGif >= len(fichiers):
+                    self.arrierePlanImageParSecondeEcoule += self.deltaTime
+                    if self.arrierePlanImageParSecondeEcoule >= 1/(self.arrierePlanImageParSeconde):
+                        self.actuelFrameGif += 1 #Changer l'imageu du gif
+                        self.arrierePlanImageParSecondeEcoule = 0
+                    if self.actuelFrameGif >= len(fichiers): #Actualiser l'image du gif en cas de problème
                         self.actuelFrameGif = 0
             else: #Le fichier est une fichier image normal
-                surface.blit(self.arrierePlanImage, (0, 0, self.arrierePlanImage.get_size()[0], self.arrierePlanImage.get_size()[1]))
+                img = self.arrierePlanImage
+        if img != None:
+            xImg = 0
+            yImg = 0
+            if self.arrierePlanImageAlignement[0] == "J": #En cas de justification de l'image
+                xQuotient = self.taille[0] / img.get_size()[0]
+                img = transform.scale(img, (xQuotient, xQuotient))
+            elif self.arrierePlanImageAlignement[1] == "J":
+                yQuotient = self.taille[1] / img.get_size()[1]
+                img = transform.scale(img, (yQuotient, yQuotient))
+                
+            if self.arrierePlanImageAlignement[0] == "C": #Gérer selon l'alignement de l'image
+                xImg = self.taille[0] / 2 - img.get_size()[0] / 2
+            elif self.arrierePlanImageAlignement[0] == "G":
+                xImg = self.taille[0] - img.get_size()[0]
+            if self.arrierePlanImageAlignement[1] == "C":
+                yImg = self.taille[1] / 2 - img.get_size()[1] / 2
+            elif self.arrierePlanImageAlignement[0] == "B":
+                yImg = self.taille[1] - img.get_size()[1]
+            print(xImg, yImg, yQuotient)
+            surface.blit(img, (xImg, yImg, 0, 0))
         return surface
 
     def frame(self): #Actualise une frame de la fenêtre
-        self.deltaTime = (time_ns() - self.deltaTime)/pow(10, 9) #Actualiser le delta time en secondes
+        self.deltaTime = (time_ns() - self._deltaTime)/pow(10, 9) #Actualiser le delta time en secondes
         self.tempsDExecution += self.deltaTime #Actualiser le temps d'éxécution
         self.fpsNbFrame += 1
 
@@ -144,7 +171,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
             self.fpsMoyen = (self.fpsMoyen + self.fps) / (2)
             print(self.fps)
         
-        self.deltaTime = time_ns() #Préparer le delta time pour le prochain affichage
+        self._deltaTime = time_ns() #Préparer le delta time pour le prochain affichage en utilisant _deltaTime
 
         self.set_cursor(SYSTEM_CURSOR_ARROW) #Initialiser le curseur à une valeur par défaut
         img = self._render()
