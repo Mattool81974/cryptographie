@@ -91,7 +91,7 @@ class MWidget: #Définition d'une classe représentant tout les widgets dans la 
 
 
 class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre principale
-    def __init__(self, fenetre, titre = "Fenêtre MGui", arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW, arrierePlanImage="", arrierePlanImageAlignement="GH", arrierePlanImageParSeconde=24): #Constructeur qui prend la taille en paramètre
+    def __init__(self, fenetre, titre = "Fenêtre MGui", arrierePlanImage="", arrierePlanImageAlignement="GH", arrierePlanImageParSeconde=24, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur qui prend la taille en paramètre
         self.type = "Fenetre"
         MWidget.__init__(self, fenetre.get_size(), (0, 0), None, arrierePlanCouleur, curseurSurvol) #Constructeur parent
         self.arrierePlanImage = None
@@ -111,8 +111,8 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
         self.arrierePlanImageParSeconde = arrierePlanImageParSeconde #Vitesse du gif d'arrière plan en images par secondes
         self.arrierePlanImageParSecondeEcoule = 0 #Temps écoulé depuis la dernière update du gif
         self.curseur = SYSTEM_CURSOR_ARROW #Curseur de l'application
+        self._deltaTime = time_ns() #Variable tampon pour deltaTime
         self.deltaTime = 0 #Temps entre 2 frames
-        self._deltaTime = time_ns() #Variable tempon pour deltaTime
         self.fenetre = fenetre
         self.fps = 0 #Nombre de frames par secondes
         self.fpsMoyen = 0 #Nombre de frames par secondes en moyenne
@@ -141,10 +141,10 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
             yImg = 0
             if self.arrierePlanImageAlignement[0] == "J": #En cas de justification de l'image
                 xQuotient = self.taille[0] / img.get_size()[0]
-                img = transform.scale(img, (xQuotient, xQuotient))
+                img = transform.scale(img, (xQuotient * img.get_width(), xQuotient * img.get_height()))
             elif self.arrierePlanImageAlignement[1] == "J":
                 yQuotient = self.taille[1] / img.get_size()[1]
-                img = transform.scale(img, (yQuotient*img.get_width(), yQuotient*img.get_height()))
+                img = transform.scale(img, (yQuotient * img.get_width(), yQuotient * img.get_height()))
                 
             if self.arrierePlanImageAlignement[0] == "C": #Gérer selon l'alignement de l'image
                 xImg = self.taille[0] / 2 - img.get_size()[0] / 2
@@ -180,11 +180,11 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
     def get_cursor(self): #Retourne le curseur de la fenêtre
         return self.curseur
 
+    def get_titreFenetre(self): #Retourne le titre de la fenêtre
+        return display.get_caption()
+    
     def set_cursor(self, curseur): #Changer le curseur de la fenêtre
         self.curseur = curseur
-
-    def set_titreFenetre(self): #Retourne le titre de la fenêtre
-        return display.get_caption()
 
     def set_titreFenetre(self, titre): #Actualiser le titre de la fenêtre
         self.titre = titre
