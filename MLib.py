@@ -11,7 +11,6 @@ class MWidget: #Définition d'une classe représentant tout les widgets dans la 
     def __init__(self, taille, position, parent = None, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur d'un widget avec comme paramètre la taille
         self.arrierePlanCouleur = arrierePlanCouleur
         self.curseurSurvol = curseurSurvol
-        self._deltaTime = time_ns()
         self.enfant = [] #Attributs de type liste comprenant tout les enfants de la fenêtre
         self.fenetrePrincipale = self #Variable contenant la fenêtre principale
         self.globalPosition = position #Variable contenant la position par rapport à la fenêtre principale
@@ -113,6 +112,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
         self.arrierePlanImageParSecondeEcoule = 0 #Temps écoulé depuis la dernière update du gif
         self.curseur = SYSTEM_CURSOR_ARROW #Curseur de l'application
         self.deltaTime = 0 #Temps entre 2 frames
+        self._deltaTime = time_ns() #Variable tempon pour deltaTime
         self.fenetre = fenetre
         self.fps = 0 #Nombre de frames par secondes
         self.fpsMoyen = 0 #Nombre de frames par secondes en moyenne
@@ -144,7 +144,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
                 img = transform.scale(img, (xQuotient, xQuotient))
             elif self.arrierePlanImageAlignement[1] == "J":
                 yQuotient = self.taille[1] / img.get_size()[1]
-                img = transform.scale(img, (yQuotient, yQuotient))
+                img = transform.scale(img, (yQuotient*img.get_width(), yQuotient*img.get_height()))
                 
             if self.arrierePlanImageAlignement[0] == "C": #Gérer selon l'alignement de l'image
                 xImg = self.taille[0] / 2 - img.get_size()[0] / 2
@@ -154,7 +154,6 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
                 yImg = self.taille[1] / 2 - img.get_size()[1] / 2
             elif self.arrierePlanImageAlignement[0] == "B":
                 yImg = self.taille[1] - img.get_size()[1]
-            print(xImg, yImg, yQuotient)
             surface.blit(img, (xImg, yImg, 0, 0))
         return surface
 
