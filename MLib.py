@@ -287,9 +287,12 @@ class MBordure(MWidget): #Définition d'une représentant un widget avec une bor
 
 
 class MTexte(MBordure): #Définition d'une classe représentant un texte graphique
-    def __init__(self, texte, taille, position, parent=None, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur = 0, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur
+    def __init__(self, texte, taille, position, parent=None, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur = 0, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur
         self.type="Texte"
         MBordure.__init__(self, taille, position, parent, bordureLargeur, bordureCouleur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, curseurSurvol) #Appel du constructeur parent
+        self.ligneLongueurMax = ligneLongueurMax
+        self.ligneMax = ligneMax
+        self.ligneLongueurMax = longueurMax
         self.policeTaille = policeTaille #Affectation des variables de la classe
         self.policeType = policeType
         self.texte = texte
@@ -300,33 +303,42 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
         if font.get_fonts().count(self.policeType) <= 0: #Vérification de la police
             self.policeType = "Arial"
         police = font.SysFont(self.policeType, self.policeTaille) #Création de la police
-        imageTexte = police.render(self.texte, True, (self.texteCouleur)) #Rendu du texte
+        texteEntier = self.texte.split("\n")
         xTexte = 0
         yTexte = 0
-        if self.texteAlignement[0] == "C":
-            xTexte = (self.taille[0]/2)-(imageTexte.get_size()[0]/2)
-        elif self.texteAlignement[0] == "G":
-            xTexte = self.bordureLargeurGauche
-        elif self.texteAlignement[0] == "D":
-            xTexte = self.taille[0] - (self.bordureLargeurDroite + imageTexte.get_size()[0])
+        
+        print(self.texte, texteEntier, len(texteEntier))
+        i = 0
+        tailleImageTexte = (0, 0)
+        for c in texteEntier:
+            imageTexte = police.render(c, True, (self.texteCouleur)) #Rendu du texte
 
-        if self.texteAlignement[1] == "C":
-            yTexte = self.taille[1]/2-imageTexte.get_size()[1]/2
-        elif self.texteAlignement[1] == "H":
-            yTexte = self.bordureLargeurHaut
-        elif self.texteAlignement[1] == "B":
-            yTexte = self.taille[1] - (self.bordureLargeurBas + imageTexte.get_size()[1])
+            if self.texteAlignement[0] == "C":
+                xTexte = (self.taille[0]/2)-(imageTexte.get_size()[0]/2)
+            elif self.texteAlignement[0] == "G":
+                xTexte = self.bordureLargeurGauche
+            elif self.texteAlignement[0] == "D":
+                xTexte = self.taille[0] - (self.bordureLargeurDroite + imageTexte.get_size()[0])
+                
+            if self.texteAlignement[1] == "C":
+                yTexte = self.taille[1]/2-(tailleImageTexte[1])*i
+            elif self.texteAlignement[1] == "H":
+                yTexte = self.bordureLargeurHaut+(tailleImageTexte[1])*i
+            elif self.texteAlignement[1] == "B":
+                yTexte = self.taille[1] - (self.bordureLargeurBas + tailleImageTexte[1])*i
 
-        self.texteRect = (xTexte, yTexte) + imageTexte.get_size()
-        surfaceF.blit(imageTexte, (xTexte, yTexte, imageTexte.get_size()[0], imageTexte.get_size()[1])) #Affichage du texte
+            self.texteRect = (xTexte, yTexte) + imageTexte.get_size()
+            surfaceF.blit(imageTexte, (xTexte, yTexte, imageTexte.get_size()[0], imageTexte.get_size()[1])) #Affichage du texte
+            tailleImageTexte = imageTexte.get_size()
+            i += 1
         return surfaceF
 
 
 
 class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée classe
-    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseurLargeur=2,  curseurTempsDAffichage = 0.4, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
+    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
         self.type = "EntreeTexte"
-        MTexte.__init__(self, "", position, taille, parent, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND) #Appelle du constructeur de MWidget
+        MTexte.__init__(self, "", position, taille, parent, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND) #Appelle du constructeur de MWidget
         self.caracteresAuthorises = caracteresAuthorises
         self.curseurLargeur = curseurLargeur
         self.curseurTempsDAffichage = curseurTempsDAffichage
@@ -361,6 +373,8 @@ class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée 
                         self.texte = self.texte[:-1]
                     elif evnt.key == K_TAB:
                         caractere = "   "
+                    elif evnt.key == K_RETURN:
+                        caractere = "\n"
                     if self.caracteresAuthorises == "all" or self.caracteresAuthorises.count(code) > 0: #Si le caractère est authorisé
                         self.texte += caractere #Ajouter le caractère au texte
         else:
