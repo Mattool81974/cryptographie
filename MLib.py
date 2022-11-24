@@ -121,6 +121,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
                 self.arrierePlanImage = None
         self.arrierePlanImageParSeconde = arrierePlanImageParSeconde #Vitesse du gif d'arrière plan en images par secondes
         self.arrierePlanImageParSecondeEcoule = 0 #Temps écoulé depuis la dernière update du gif
+        self.caplockPressee = False #Savoir si le bouton pour bloquer les majuscule est pressé
         self.curseur = SYSTEM_CURSOR_ARROW #Curseur de l'application
         self._deltaTime = time_ns() #Variable tampon pour deltaTime
         self.deltaTime = 0 #Temps entre 2 frames
@@ -130,6 +131,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
         self.fpsNb = 0 #Nombre d'actualisation des fps
         self.fpsNbFrame = 0 #Nombre de frame entre 2 actualisations de fps
         self.set_titreFenetre(titre)
+        self.shiftPressee = False #Savoir si le bouton pour les majuscule est pressé
         self.tempsDExecution = 0 #Temps d'éxécution depuis le dernier comptage des fps
 
     def _nouvelleElement(self, element): #Ajouter un élément à la fenêtre
@@ -187,7 +189,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
         self._deltaTime = time_ns() #Préparer le delta time pour le prochain affichage en utilisant _deltaTime
 
         self.positionSouris = mouse.get_pos() #Stocker la position de la souris dans une variable
-
+        
         self.evenement = event.get() #Obtenir tout les évènements
         for evnt in self.evenement: #Chercher dans tout les évènements
             if evnt.type == QUIT: exit() #Si évènement quitter appeler alors quitter
@@ -199,6 +201,21 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
                     if i.get_position()[0] < self.positionSouris[0] and self.positionSouris[0] < i.get_position()[0] + i.get_taille()[0] and i.get_position()[1] < self.positionSouris[1] and self.positionSouris[1] < i.get_position()[1] + i.get_taille()[1]:
                         focus = i
                 focus.focus = True
+                self.evenement.remove(evnt)
+            elif evnt.type == KEYDOWN:
+                if evnt.key == K_LSHIFT: #Si la touche pour les majuscules est pressée
+                    self.shiftPressee = True
+                    self.evenement.remove(evnt)
+                elif evnt.key == K_CAPSLOCK: #Si la touche pour bloquer les majuscule est pressé
+                    if self.caplockPressee:
+                        self.caplockPressee = False
+                    else:
+                        self.caplockPressee = True
+                    self.evenement.remove(evnt)
+            elif evnt.type == KEYUP:
+                if evnt.key == K_LSHIFT: #Si la touche pour les majuscules n'est plus pressé
+                    self.shiftPressee = False
+                    self.evenement.remove(evnt)
 
         self.set_cursor(self.curseurSurvol) #Initialiser le curseur à une valeur par défaut
         img = self._render()
@@ -338,14 +355,12 @@ class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée 
 
             for evnt in self.fenetrePrincipale.evenement: #Chercher les évènements du clavier
                 if evnt.type == KEYDOWN:
-                    caractere = ""
-                    code = key.name(evnt.key) #Obtenir le code de la touche
-                    if code == "space":
-                        caractere = " "
-                    elif code == "backspace":
-                        self.texte = self.texte[0:-1]
-                    else:
-                        caractere = code
+                    caractere = evnt.unicode #Obtenir le code unicode de la touche
+                    if evnt.key == K_BACKSPACE:
+                        caractere = ""
+                        self.texte = self.texte[:-1]
+                    elif evnt.key == K_TAB:
+                        caractere = "   "
                     if self.caracteresAuthorises == "all" or self.caracteresAuthorises.count(code) > 0: #Si le caractère est authorisé
                         self.texte += caractere #Ajouter le caractère au texte
         else:
