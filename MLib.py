@@ -287,96 +287,150 @@ class MBordure(MWidget): #Définition d'une représentant un widget avec une bor
 
 
 class MTexte(MBordure): #Définition d'une classe représentant un texte graphique
-    def __init__(self, texte, taille, position, parent=None, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur = 0, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur
+    def __init__(self, texte, taille, position, parent=None, curseur = False, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur = 0, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur
         self.type="Texte"
         MBordure.__init__(self, taille, position, parent, bordureLargeur, bordureCouleur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, curseurSurvol) #Appel du constructeur parent
+        self.curseur = curseur
+        self.curseurLargeur = curseurLargeur
+        self.curseurPosition = 0 #Défini la position du curseur dans le texte
+        self.curseurTempsDAffichage = curseurTempsDAffichage
+        self.curseurTempsDAffichageAffiche = True
+        self.curseurTempsDAffichageEcoule = 0 #Temps écoulé depuis le changement de curseur
         self.ligneLongueurMax = ligneLongueurMax
         self.ligneMax = ligneMax
         self.ligneLongueurMax = longueurMax
         self.policeTaille = policeTaille #Affectation des variables de la classe
         self.policeType = policeType
         self.texte = texte
+        self.textes = texte.split("\n") #Texte split selon les sauts de lignes
         self.texteAlignement = texteAlignement
         self.texteCouleur = texteCouleur
+        self.texteRect = [(0, 0, 0, 0)]
     def _renderBeforeHierarchy(self, surfaceF): #Ré-implémentation de la fonction pour afficher la bordure
+        if self.focus and self.curseur:
+            if self.curseurTempsDAffichageEcoule == -1: #Calculer le temps restant à afficher ou non le curseur
+                self.curseurTempsDAffichageEcoule = 0
+                self.curseurTempsDAffichageAffiche = True
+            if self.curseurTempsDAffichageEcoule >= self.curseurTempsDAffichage:
+                    while self.curseurTempsDAffichageEcoule >= self.curseurTempsDAffichage:
+                        self.curseurTempsDAffichageEcoule -= self.curseurTempsDAffichage
+                    if self.curseurTempsDAffichageAffiche:
+                        self.curseurTempsDAffichageAffiche = False
+                    else:
+                        self.curseurTempsDAffichageAffiche = True
+                    
+        if self.curseurPosition < 0:
+            self.curseurPosition = 0
+        elif self.curseurPosition > len(self.texte):
+            self.curseurPosition = len(self.texte)
+        
+        xCurseur = 0
+        yCurseur = 0
+        hCurseur = 0
+        
         surfaceF = MBordure._renderBeforeHierarchy(self, surfaceF) #Appel de la fonction de bordure
         if font.get_fonts().count(self.policeType) <= 0: #Vérification de la police
             self.policeType = "Arial"
         police = font.SysFont(self.policeType, self.policeTaille) #Création de la police
-        texteEntier = self.texte.split("\n")
-        xTexte = 0
-        yTexte = 0
+        self.textes = self.texte.split("\n")
         
-        print(self.texte, texteEntier, len(texteEntier))
         i = 0
+        buff = 0 #Variable tampon pour placer le curseur
+        ligneCurseur = 0 #Variable qui stocke la ligne du curseur
         tailleImageTexte = (0, 0)
-        for c in texteEntier:
-            imageTexte = police.render(c, True, (self.texteCouleur)) #Rendu du texte
-
+        texteSurface = [] #Variable qui contient toutes les surfaces du texte
+        tailleY = 0 #Variable qui contient la taille de tous les textes
+        for c in enumerate(self.textes):
+            if buff != -1:
+                    buff += len(c[1])
+            if self.curseurPosition <= buff:
+                i = 0 #Variable tampon pour éviter des erreurs out of range
+                if c[0] > 0:
+                    i = buff - len(c[1])
+                posCurseur = (buff - i) - (buff-self.curseurPosition)
+                imageTexte = police.render(c[1][0:posCurseur], True, (self.texteCouleur)) #Rendu du texte avec le curseur
+                xCurseur = imageTexte.get_size()[0]
+                imageTexte = police.render(c[1], True, (self.texteCouleur)) #Rendu du texte
+                texteSurface.append(imageTexte)
+                tailleY += imageTexte.get_size()[1]
+                buff = -1
+            else:
+                imageTexte = police.render(c[1], True, (self.texteCouleur)) #Rendu du texte
+                texteSurface.append(imageTexte)
+                tailleY += imageTexte.get_size()[1]
+                if buff != -1:
+                    ligneCurseur += 1
+            if buff != -1:
+                    buff += 1
+            
+        multiplier = 1
+        xTexte = self.bordureLargeurGauche
+        yTexte = self.bordureLargeurHaut
+        
+        if self.texteAlignement[1] == "C":
+            yTexte = self.taille[1]/2-tailleY/2
+        elif self.texteAlignement[1] == "B":
+                yTexte = self.taille[1] - (self.bordureLargeurBas + c.get_size[1])
+                multiplier = -1
+            
+        self.texteRect.clear() #Vider les coordonnées des textes
+        buff = 0 #Réutilisation de la variable buff
+        for c in texteSurface: #Calculer les tailles de chaques texte
             if self.texteAlignement[0] == "C":
-                xTexte = (self.taille[0]/2)-(imageTexte.get_size()[0]/2)
-            elif self.texteAlignement[0] == "G":
-                xTexte = self.bordureLargeurGauche
+                xTexte = self.taille[0]/2 - c.get_size()[0]/2
             elif self.texteAlignement[0] == "D":
-                xTexte = self.taille[0] - (self.bordureLargeurDroite + imageTexte.get_size()[0])
+                xTexte = self.taille[0] - (self.bordureLargeurDroite + c.get_size()[0])
+             
+            if buff == ligneCurseur:
+                xCurseur += xTexte
+                yCurseur = yTexte
+                hCurseur = c.get_size()[1]
+            buff += 1
                 
-            if self.texteAlignement[1] == "C":
-                yTexte = self.taille[1]/2-(tailleImageTexte[1])*i
-            elif self.texteAlignement[1] == "H":
-                yTexte = self.bordureLargeurHaut+(tailleImageTexte[1])*i
-            elif self.texteAlignement[1] == "B":
-                yTexte = self.taille[1] - (self.bordureLargeurBas + tailleImageTexte[1])*i
-
-            self.texteRect = (xTexte, yTexte) + imageTexte.get_size()
-            surfaceF.blit(imageTexte, (xTexte, yTexte, imageTexte.get_size()[0], imageTexte.get_size()[1])) #Affichage du texte
-            tailleImageTexte = imageTexte.get_size()
-            i += 1
+            surfaceF.blit(c, (xTexte, yTexte, c.get_size()[0], c.get_size()[1]))
+            self.texteRect.append((xTexte, yTexte, c.get_size()[0], c.get_size()[1])) #Ajoute des coordonnées aux coordonnées de textes
+            yTexte += c.get_size()[1] * multiplier
+            
+        if self.curseur and self.focus:
+            if self.curseurTempsDAffichageAffiche:
+                draw.line(surfaceF, (self.texteCouleur), (xCurseur, yCurseur), (xCurseur, yCurseur + hCurseur), self.curseurLargeur)
+            self.curseurTempsDAffichageEcoule += self.fenetrePrincipale.deltaTime
+        else:
+            self.curseurTempsDAffichageEcoule = -1
+            
         return surfaceF
 
 
 
 class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée classe
-    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
+    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseur = True, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
         self.type = "EntreeTexte"
-        MTexte.__init__(self, "", position, taille, parent, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND) #Appelle du constructeur de MWidget
+        MTexte.__init__(self, "", position, taille, parent, curseur, curseurLargeur, curseurTempsDAffichage, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND) #Appelle du constructeur de MWidget
         self.caracteresAuthorises = caracteresAuthorises
-        self.curseurLargeur = curseurLargeur
-        self.curseurTempsDAffichage = curseurTempsDAffichage
-        self.curseurTempsDAffichageAffiche = True
-        self.curseurTempsDAffichageEcoule = 0 #Temps écoulé depuis le changement de curseur
     def _renderBeforeHierarchy(self, surface): #Ré-implémentation de la fonction pour afficher l'entrée
         super()._renderBeforeHierarchy(surface)
         if self.focus: #Si le widget est focus
-            if self.curseurTempsDAffichageEcoule == -1: #Calculer le temps restant à afficher ou non le curseur
-                self.curseurTempsDAffichageEcoule = 0
-                self.curseurTempsDAffichageAffiche = True
-            if self.curseurTempsDAffichageEcoule >= self.curseurTempsDAffichage:
-                while self.curseurTempsDAffichageEcoule >= self.curseurTempsDAffichage:
-                    self.curseurTempsDAffichageEcoule -= self.curseurTempsDAffichage
-                if self.curseurTempsDAffichageAffiche:
-                    self.curseurTempsDAffichageAffiche = False
-                else:
-                    self.curseurTempsDAffichageAffiche = True
-            xCurseur = self.texteRect[0] + self.texteRect[2] #Calculer la position du curseur
-            yCurseur = self.texteRect[1]
-            wCurseur = self.texteRect[2]
-            hCurseur = self.texteRect[3]
-            if self.curseurTempsDAffichageAffiche:
-                draw.line(surface, self.texteCouleur, (xCurseur, yCurseur), (xCurseur, yCurseur + hCurseur), self.curseurLargeur) #Afficher le curseur
-            self.curseurTempsDAffichageEcoule += self.fenetrePrincipale.deltaTime
-
             for evnt in self.fenetrePrincipale.evenement: #Chercher les évènements du clavier
                 if evnt.type == KEYDOWN:
                     caractere = evnt.unicode #Obtenir le code unicode de la touche
                     if evnt.key == K_BACKSPACE:
                         caractere = ""
-                        self.texte = self.texte[:-1]
+                        if self.curseurPosition > 0:
+                            self.texte = self.texte[0:self.curseurPosition-1] + self.texte[self.curseurPosition:len(self.texte)]
+                            self.curseurPosition -= 1
                     elif evnt.key == K_TAB:
                         caractere = "   "
                     elif evnt.key == K_RETURN:
                         caractere = "\n"
+                    elif evnt.key == K_LEFT:
+                        caractere = ""
+                        self.curseurPosition -= 1
+                    elif evnt.key == K_RIGHT:
+                        caractere = ""
+                        self.curseurPosition += 1
                     if self.caracteresAuthorises == "all" or self.caracteresAuthorises.count(code) > 0: #Si le caractère est authorisé
-                        self.texte += caractere #Ajouter le caractère au texte
+                        self.texte = self.texte[0:self.curseurPosition] + caractere + self.texte[self.curseurPosition:len(self.texte)] #Ajouter le caractère au texte
+                        self.curseurPosition += len(caractere)
         else:
             curseurTempsDAffichageEcoule = -1
         return surface
