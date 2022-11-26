@@ -298,7 +298,7 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
         self.curseurTempsDAffichageEcoule = 0 #Temps écoulé depuis le changement de curseur
         self.ligneLongueurMax = ligneLongueurMax
         self.ligneMax = ligneMax
-        self.ligneLongueurMax = longueurMax
+        self.longueurMax = longueurMax
         self.policeTaille = policeTaille #Affectation des variables de la classe
         self.policeType = policeType
         self.texte = texte
@@ -332,19 +332,29 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
         if font.get_fonts().count(self.policeType) <= 0: #Vérification de la police
             self.policeType = "Arial"
         police = font.SysFont(self.policeType, self.policeTaille) #Création de la police
-        self.textes = self.texte.split("\n")
+        texteFinal  = self.texte
         
-        i = 0
-        buff = 0 #Variable tampon pour placer le curseur
+        ligneTaille = 0 #Variable qui contient la tailel de chaque lignes
+        for c in texteFinal:
+            if c == "\n":
+                ligneTaille == 0
+            else:
+                ligneTaille += 1
+                if ligneTaille > self.ligneLongueurMax:
+                    texteFinal = texteFinal[0:ligneTaille] + "\n" + texteFinal[ligneTaille:-1]
+                    ligneTaille = 0
+        self.textes = texteFinal.split("\n")
+        
+        buff = 0 #Variable temporaire pour placer le curseur
         ligneCurseur = 0 #Variable qui stocke la ligne du curseur
         tailleImageTexte = (0, 0)
         texteSurface = [] #Variable qui contient toutes les surfaces du texte
         tailleY = 0 #Variable qui contient la taille de tous les textes
-        for c in enumerate(self.textes):
+        for c in enumerate(self.textes): #Générer les surfaces pour les textes avec le curseur
             if buff != -1:
                     buff += len(c[1])
             if self.curseurPosition <= buff:
-                i = 0 #Variable tampon pour éviter des erreurs out of range
+                i = 0 #Variable temporaire pour éviter des erreurs out of range
                 if c[0] > 0:
                     i = buff - len(c[1])
                 posCurseur = (buff - i) - (buff-self.curseurPosition)
@@ -367,7 +377,7 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
         xTexte = self.bordureLargeurGauche
         yTexte = self.bordureLargeurHaut
         
-        if self.texteAlignement[1] == "C":
+        if self.texteAlignement[1] == "C": #Calculer l'alignement y du 1er texte
             yTexte = self.taille[1]/2-tailleY/2
         elif self.texteAlignement[1] == "B":
                 yTexte = self.taille[1] - (self.bordureLargeurBas + c.get_size[1])
@@ -391,7 +401,7 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
             self.texteRect.append((xTexte, yTexte, c.get_size()[0], c.get_size()[1])) #Ajoute des coordonnées aux coordonnées de textes
             yTexte += c.get_size()[1] * multiplier
             
-        if self.curseur and self.focus:
+        if self.curseur and self.focus: #Afficher le curseur si nécessaire
             if self.curseurTempsDAffichageAffiche:
                 draw.line(surfaceF, (self.texteCouleur), (xCurseur, yCurseur), (xCurseur, yCurseur + hCurseur), self.curseurLargeur)
             self.curseurTempsDAffichageEcoule += self.fenetrePrincipale.deltaTime
@@ -431,6 +441,7 @@ class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée 
                     if self.caracteresAuthorises == "all" or self.caracteresAuthorises.count(code) > 0: #Si le caractère est authorisé
                         self.texte = self.texte[0:self.curseurPosition] + caractere + self.texte[self.curseurPosition:len(self.texte)] #Ajouter le caractère au texte
                         self.curseurPosition += len(caractere)
+                    self.fenetrePrincipale.evenement.remove(evnt)
         else:
             curseurTempsDAffichageEcoule = -1
         return surface
