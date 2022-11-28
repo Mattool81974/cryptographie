@@ -8,7 +8,7 @@ import pygame
 pygame.init()
 
 class MWidget: #Définition d'une classe représentant tout les widgets dans la GUI
-    def __init__(self, taille, position, parent = None, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur d'un widget avec comme paramètre la taille
+    def __init__(self, position, taille, parent = None, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur d'un widget avec comme paramètre la taille
         self.arrierePlanCouleur = arrierePlanCouleur
         self.curseurSurvol = curseurSurvol
         self.enfant = [] #Attributs de type liste comprenant tout les enfants de la fenêtre
@@ -104,7 +104,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
     def __init__(self, fenetre, titre = "Fenêtre MGui", arrierePlanImage="", arrierePlanImageAlignement="GH", arrierePlanImageParSeconde=24, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur qui prend la taille en paramètre
         self.toutLesElements = [] #Liste de tout les éléments de la fenêtre
         self.type = "Fenetre"
-        MWidget.__init__(self, fenetre.get_size(), (0, 0), None, arrierePlanCouleur, curseurSurvol) #Constructeur parent
+        MWidget.__init__(self, (0, 0), fenetre.get_size(), None, arrierePlanCouleur, curseurSurvol) #Constructeur parent
         self.arrierePlanImage = None
         self.arrierePlanImageAlignement = arrierePlanImageAlignement
         self.actuelFrameGif = 0 #Frame du gif actuel
@@ -240,7 +240,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
 class MBordure(MWidget): #Définition d'une représentant un widget avec une bordure
     def __init__(self, position, taille, parent, bordureLargeur = 2, bordureCouleur = (0, 0, 0), bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur de la classe
         self.type = "Bordure"
-        MWidget.__init__(self, taille, position, parent, arrierePlanCouleur, curseurSurvol) #Appeler le constructeur de la classe MWidget
+        MWidget.__init__(self, position, taille, parent, arrierePlanCouleur, curseurSurvol) #Appeler le constructeur de la classe MWidget
         if bordureLargeurGauche != None: #Calculer les différentes largeur
             self.bordureLargeurGauche = bordureLargeurGauche
         else:
@@ -287,20 +287,25 @@ class MBordure(MWidget): #Définition d'une représentant un widget avec une bor
 
 
 class MTexte(MBordure): #Définition d'une classe représentant un texte graphique
-    def __init__(self, texte, taille, position, parent=None, curseur = False, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur = 0, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur
+    def __init__(self, texte, position, taille, parent=None, curseur = False, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = -1, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur = 0, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur=(0, 0, 0, 0), curseurSurvol=SYSTEM_CURSOR_ARROW): #Constructeur
         self.type="Texte"
-        MBordure.__init__(self, taille, position, parent, bordureLargeur, bordureCouleur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, curseurSurvol) #Appel du constructeur parent
+        MBordure.__init__(self, position, taille, parent, bordureLargeur, bordureCouleur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, curseurSurvol) #Appel du constructeur parent
         self.curseur = curseur
         self.curseurLargeur = curseurLargeur
         self.curseurPosition = 0 #Défini la position du curseur dans le texte
         self.curseurTempsDAffichage = curseurTempsDAffichage
         self.curseurTempsDAffichageAffiche = True
         self.curseurTempsDAffichageEcoule = 0 #Temps écoulé depuis le changement de curseur
-        self.ligneLongueurMax = ligneLongueurMax
+        if ligneLongueurMax < 0:
+            self.ligneLongueurMax = taille[0]
+        else:
+            self.ligneLongueurMax = ligneLongueurMax
         self.ligneMax = ligneMax
         self.longueurMax = longueurMax
         self.policeTaille = policeTaille #Affectation des variables de la classe
         self.policeType = policeType
+        if policeType == "defaut":
+            policeType = font.get_default_font()
         self.texte = texte
         self.textes = texte.split("\n") #Texte split selon les sauts de lignes
         self.texteAlignement = texteAlignement
@@ -321,8 +326,10 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
                     
         if self.curseurPosition < 0:
             self.curseurPosition = 0
-        elif self.curseurPosition > len(self.texte):
+        elif self.curseurPosition >= len(self.texte):
             self.curseurPosition = len(self.texte)
+            
+        #print("A", self.ligneLongueurMax)
         
         xCurseur = 0
         yCurseur = 0
@@ -334,15 +341,41 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
         police = font.SysFont(self.policeType, self.policeTaille) #Création de la police
         texteFinal  = self.texte
         
-        ligneTaille = 0 #Variable qui contient la tailel de chaque lignes
-        for c in texteFinal:
-            if c == "\n":
-                ligneTaille == 0
-            else:
-                ligneTaille += 1
-                if ligneTaille > self.ligneLongueurMax:
-                    texteFinal = texteFinal[0:ligneTaille] + "\n" + texteFinal[ligneTaille:-1]
-                    ligneTaille = 0
+        offsetCurseur = 0 #Savoir à quel point le curseur devra être avancer selon les modifications apportées
+        if self.ligneLongueurMax != -1:
+            ligneTaille = 0 #Variable qui contient la taile de chaque lignes
+            nombreLigne = 0
+            self.texte = "" #Ré-initialisation pour préparer une modification potentielle
+            tailleTotal = 0 #Variable qui contient la taile total du texte
+            for c in enumerate(texteFinal): #Gérer la taille du texte
+                self.texte += c[1]
+                tailleTotal += 1
+                if c[1] == "\n":
+                    if nombreLigne < self.ligneMax - 1:
+                        ligneTaille = 0
+                        nombreLigne += 1
+                    else: #Si il y a trop de ligne
+                        self.texte = self.texte[0:len(self.texte) - 1]
+                        texteFinal = texteFinal[0:tailleTotal - 1]
+                        if self.curseurPosition > len(texteFinal) - (offsetCurseur):
+                            self.curseurPosition = len(texteFinal) - (offsetCurseur)
+                        break
+                else:
+                    ligneTaille += police.size(c[1])[0]
+                    if ligneTaille > self.ligneLongueurMax: #Si un saut de ligne est nécessaire
+                        if nombreLigne < self.ligneMax - 1:
+                            texteFinal = (texteFinal[0:tailleTotal-1] + "\n" + texteFinal[tailleTotal-1:len(texteFinal)])
+                            nombreLigne += 1
+                            tailleTotal += 1
+                            if c[0] <= self.curseurPosition:
+                                offsetCurseur += 1
+                            ligneTaille = 0
+                        else: #Si il y a trop de ligne
+                            self.texte = self.texte[0:len(self.texte) - 1]
+                            texteFinal = texteFinal[0:tailleTotal - 1]
+                            if self.curseurPosition > len(texteFinal) - (offsetCurseur):
+                                self.curseurPosition = len(texteFinal) - (offsetCurseur)
+                            break
         self.textes = texteFinal.split("\n")
         
         buff = 0 #Variable temporaire pour placer le curseur
@@ -357,7 +390,7 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
                 i = 0 #Variable temporaire pour éviter des erreurs out of range
                 if c[0] > 0:
                     i = buff - len(c[1])
-                posCurseur = (buff - i) - (buff-self.curseurPosition)
+                posCurseur = (buff - i) - (buff-(self.curseurPosition+offsetCurseur))
                 imageTexte = police.render(c[1][0:posCurseur], True, (self.texteCouleur)) #Rendu du texte avec le curseur
                 xCurseur = imageTexte.get_size()[0]
                 imageTexte = police.render(c[1], True, (self.texteCouleur)) #Rendu du texte
@@ -409,16 +442,50 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
             self.curseurTempsDAffichageEcoule = -1
             
         return surfaceF
+    
+    def get_texte(self):
+        return self.texte
+    
+    def set_texte(self, texte):
+        self.texte = texte
 
+
+
+class MBouton(MTexte): #Définition d'une classe représentant un bouton
+    def __init__(self, position, taille, parent, actionAuSurvol = "", texte = "", curseur = False, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = -1, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)):
+        self.type = "Bouton"
+        MTexte.__init__(self, texte, position, taille, parent, curseur, curseurLargeur, curseurTempsDAffichage, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND)
+        self.actionAuSurvol = actionAuSurvol
+        self.click = False #Savoir si l'objet est clické
+    def _renderBeforeHierarchy(self, surfaceF):
+        self.click = False
+        taillePolice = self.policeTaille #Plein de variables temporaires pour pouvoir bien utiliser le survol
+        texte = self.texte
+        if self.get_survol():
+            actions = self.actionAuSurvol.split("-")
+            for c in actions:
+                action = c.split("=")[0]
+                if action == "policeTaille":
+                    self.policeTaille = int(self.actionAuSurvol.split("=")[1])
+                if action == "texte":
+                    self.texte = self.actionAuSurvol[len(self.actionAuSurvol.split("=")[1]):len(self.actionAuSurvol)]
+        if self.focus: #Si l'objet est clické
+            self.click = True
+            self.focus = False
+        surfaceF = super()._renderBeforeHierarchy(surfaceF)
+        self.policeTaille = taillePolice
+        self.texte = texte
+        return surfaceF
+    def get_clicke(self):
+        return self.click
 
 
 class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée classe
-    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseur = True, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = 32, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
+    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseur = True, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = -1, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255)): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
         self.type = "EntreeTexte"
-        MTexte.__init__(self, "", position, taille, parent, curseur, curseurLargeur, curseurTempsDAffichage, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND) #Appelle du constructeur de MWidget
+        MTexte.__init__(self, texte, position, taille, parent, curseur, curseurLargeur, curseurTempsDAffichage, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, SYSTEM_CURSOR_HAND) #Appelle du constructeur de MWidget
         self.caracteresAuthorises = caracteresAuthorises
     def _renderBeforeHierarchy(self, surface): #Ré-implémentation de la fonction pour afficher l'entrée
-        super()._renderBeforeHierarchy(surface)
         if self.focus: #Si le widget est focus
             for evnt in self.fenetrePrincipale.evenement: #Chercher les évènements du clavier
                 if evnt.type == KEYDOWN:
@@ -444,4 +511,5 @@ class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée 
                     self.fenetrePrincipale.evenement.remove(evnt)
         else:
             curseurTempsDAffichageEcoule = -1
+        super()._renderBeforeHierarchy(surface)
         return surface

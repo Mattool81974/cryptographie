@@ -10,10 +10,23 @@ fenetre=display.set_mode(TAILLE) #Création de l'instance d'une fenêtre
 app = MFenetre(fenetre, "Cryptographie", arrierePlanImage="assets/fond.gif", arrierePlanImageAlignement="CJ", arrierePlanImageParSeconde=48) #Création d'un objet app pour mieux gérer la fenêtre
 
 titre = MTexte("Chiffrage", (100, 5), (300, 90), parent=app, bordureCouleur=(0, 0, 0), bordureLargeur=3, bordureRayon=25, arrierePlanCouleur=(255, 255, 255, 255*0.75), policeTaille=65, texteAlignement="CC")
-texteDecrypter = MEntreeTexte((100, 100), (300, 100), app, ligneLongueurMax=24, bordureRayon=15, policeTaille=22, texteAlignement="GH")
+texteDecrypter = MEntreeTexte((100, 100), (300, 90), app, ligneLongueurMax=280, ligneMax=3, bordureRayon=15, policeTaille=22, policeType="defaut", texteAlignement="GH")
+boutonCrypter = MBouton((10, 210), (150, 60), app, actionAuSurvol="policeTaille=32", texte="Chiffrer", texteAlignement="CC", policeTaille=24, policeType="defaut", bordureLargeur=2, bordureRayon=5)
+boutonDecrypter = MBouton((340, 210), (150, 60), app, actionAuSurvol="policeTaille=32", texte="Déchiffrer", texteAlignement="CC", policeTaille=24, bordureLargeur=2, bordureRayon=5)
+texteCrypter = MEntreeTexte((100, 290), (300, 90), app, ligneLongueurMax=280, ligneMax=3, bordureRayon=15, policeTaille=22, texteAlignement="GH")
 
 while True: #Boucle infini tant que l'évènement "quitter" n'est pas vue
     app.frame()
+    
+    if boutonCrypter.get_clicke():
+        texte = texteDecrypter.get_texte()
+        resultat = ""
+        for c in texte:
+            print(c, ord(c), ord(c) + 13, chr(ord(c) + 13))
+            resultat += chr(ord(c) + 13)
+            print(chr(ord(c) + 13))
+        print(resultat)
+        texteCrypter.set_texte(resultat)
     
     display.flip()
 
