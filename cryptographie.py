@@ -22,11 +22,34 @@ while True: #Boucle infini tant que l'évènement "quitter" n'est pas vue
         texte = texteDecrypter.get_texte()
         resultat = ""
         for c in texte:
-            print(c, ord(c), ord(c) + 13, chr(ord(c) + 13))
-            resultat += chr(ord(c) + 13)
-            print(chr(ord(c) + 13))
-        print(resultat)
+            if strAlpha(c):
+                entier = ord(c) + 13
+                if strAlphaLower(c):
+                    if entier > 122:
+                        entier -= 25
+                elif strAlphaUpper(c):
+                    if entier > 91:
+                        entier -= 25
+                resultat += chr(entier)
+            else:
+                resultat += c
         texteCrypter.set_texte(resultat)
+    elif boutonDecrypter.get_clicke():
+        texte = texteCrypter.get_texte()
+        resultat = ""
+        for c in texte:
+            if strAlpha(c):
+                entier = ord(c) - 13
+                if strAlphaLower(c):
+                    if entier < 97:
+                        entier += 25
+                elif strAlphaUpper(c):
+                    if entier < 65:
+                        entier += 25
+                resultat += chr(entier)
+            else:
+                resultat += c
+        texteDecrypter.set_texte(resultat)
     
     display.flip()
 

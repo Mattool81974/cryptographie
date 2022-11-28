@@ -7,6 +7,42 @@ from time import time_ns
 import pygame
 pygame.init()
 
+ALPHA_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+ALPHA_LOWER = "abcdefghijklmnopqrstuvwxyz"
+NUMERICS = "1234567890"
+SYMBOLS_KEYPAD_LITTLE = " &é\"'(-è_çà)=^$*ù!:;,~#}{[|`\\^@]¤"
+
+def strAlphaUpper(strC): #Savoir si le str est entièrement consitué de lettre de l'alphabet en majuscule
+    for c in strC:
+        if ALPHA_UPPER.count(c) <= 0:
+            return False
+    return True
+
+def strAlphaLower(strC): #Savoir si le str est entièrement consitué de lettre de l'alphabet en majuscule
+    for c in strC:
+        if ALPHA_LOWER.count(c) <= 0:
+            return False
+    return True
+
+def strAlpha(strC): #Savoir si le str est entièrement constitué de lettre de l'alphabet
+    for c in strC:
+        if (not strAlphaUpper(c)) and (not strAlphaLower(c)):
+            return False
+    return True
+
+def strContent(strC): #Savoir si le str contient de l'alphabet, nombre ...
+    alphaUpper = False
+    alphaLower = False
+    numerics = False
+    for c in strC:
+        if ALPHA_UPPER.count(c) > 0:
+            alphaUpper = True
+        elif ALPHA_LOWER.count(c) > 0:
+            alphaLower = True
+        elif NUMERICS.count(c) > 0:
+            numerics = True
+    return alphaUpper, alphaLower, numerics
+
 class MWidget: #Définition d'une classe représentant tout les widgets dans la GUI
     def __init__(self, position, taille, parent = None, arrierePlanCouleur = (255, 255, 255, 1), curseurSurvol = SYSTEM_CURSOR_ARROW): #Constructeur d'un widget avec comme paramètre la taille
         self.arrierePlanCouleur = arrierePlanCouleur
@@ -303,9 +339,9 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
         self.ligneMax = ligneMax
         self.longueurMax = longueurMax
         self.policeTaille = policeTaille #Affectation des variables de la classe
-        self.policeType = policeType
         if policeType == "defaut":
             policeType = font.get_default_font()
+        self.policeType = policeType
         self.texte = texte
         self.textes = texte.split("\n") #Texte split selon les sauts de lignes
         self.texteAlignement = texteAlignement
