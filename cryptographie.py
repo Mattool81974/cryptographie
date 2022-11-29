@@ -64,21 +64,9 @@ while True: #Boucle infini tant que l'évènement "quitter" n'est pas vue
             texteCrypter.set_texte(resultat)
     elif boutonDecrypter.get_clicke(): #Décrypter le texte
         if bordureChoixBouton.get_texte() == "Rot13": #Avec rot13
-            texte = texteCrypter.get_texte()
-            resultat = ""
-            for c in texte:
-                if strAlpha(c):
-                    entier = ord(c) - 13
-                    if strAlphaLower(c):
-                        if entier < 97:
-                            entier += 26
-                    elif strAlphaUpper(c):
-                        if entier < 65:
-                            entier += 26
-                    resultat += chr(entier)
-                else:
-                    resultat += c
-            texteDecrypter.set_texte(resultat)
+            texte = texteCrypter.get_texte() #Obtention du texte à crypter
+            resultat = rot13Dechiffrage(texte)
+            texteDecrypter.set_texte(resultat) #Appliquage du résultat final
         else: #Avec Vigenère
             texte = texteCrypter.get_texte() #Obtention du texte à crypter
             cle = texteCleVigenere.get_texte() #Obtention de la clé Vigenère
