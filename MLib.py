@@ -221,7 +221,7 @@ class MFenetre(MWidget): #Définition d'une classe représentant la fenêtre pri
             self.fps = self.fpsNbFrame
             self.fpsNbFrame = 0
             self.fpsMoyen = (self.fpsMoyen + self.fps) / (2)
-            print(self.fps)
+            print("FPS/FPS Moyen:", str(self.fps) + "/" + str(self.fpsMoyen))
         
         self._deltaTime = time_ns() #Préparer le delta time pour le prochain affichage en utilisant _deltaTime
 
@@ -485,6 +485,9 @@ class MTexte(MBordure): #Définition d'une classe représentant un texte graphiq
     def get_texte(self):
         return self.texte
     
+    def set_curseurPosition(self, position):
+        self.curseurPosition = position
+
     def set_texte(self, texte):
         self.texte = texte
 
@@ -499,7 +502,7 @@ class MBouton(MTexte): #Définition d'une classe représentant un bouton
         self.click = False
         taillePolice = self.policeTaille #Plein de variables temporaires pour pouvoir bien utiliser le survol
         texte = self.texte
-        if self.get_survol():
+        if self.get_survol(): #Si l'objet est survolé
             actions = self.actionAuSurvol.split("-")
             for c in actions:
                 action = c.split("=")[0]
@@ -519,9 +522,9 @@ class MBouton(MTexte): #Définition d'une classe représentant un bouton
 
 
 class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée classe
-    def __init__(self, position, taille, parent, texte = "", caracteresAuthorises = "all", curseur = True, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = -1, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255), curseurSurvol = SYSTEM_CURSOR_HAND, type = "EntreeTexte"): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
+    def __init__(self, position, taille, parent, texte = "", caracteresAutorises = "all", curseur = True, curseurLargeur=2,  curseurTempsDAffichage = 0.4, ligneLongueurMax = -1, ligneMax = 1, longueurMax = 32, policeTaille=12, policeType = "Ariel", texteAlignement = "GH", texteCouleur=(0, 0, 0), bordureCouleur = (0, 0, 0), bordureLargeur=5, bordureRayon = 0, bordureLargeurGauche = None, bordureLargeurDroite = None, bordureLargeurBas = None, bordureLargeurHaut = None, bordureRayonGH = None, bordureRayonDH = None, bordureRayonGB = None, bordureRayonDB = None, arrierePlanCouleur = (255, 255, 255), curseurSurvol = SYSTEM_CURSOR_HAND, type = "EntreeTexte"): #Constructeur d'une entrée texte grâce à la taille, la position, et toutes les variables secondaires
         MTexte.__init__(self, texte, position, taille, parent, curseur, curseurLargeur, curseurTempsDAffichage, ligneLongueurMax, ligneMax, longueurMax, policeTaille, policeType, texteAlignement, texteCouleur, bordureCouleur, bordureLargeur, bordureRayon, bordureLargeurGauche, bordureLargeurDroite, bordureLargeurBas, bordureLargeurHaut, bordureRayonGH, bordureRayonDH, bordureRayonGB, bordureRayonDB, arrierePlanCouleur, curseurSurvol, type) #Appelle du constructeur de MWidget
-        self.caracteresAuthorises = caracteresAuthorises
+        self.caracteresAutorises = caracteresAutorises
     def _renderBeforeHierarchy(self, surface): #Ré-implémentation de la fonction pour afficher l'entrée
         if self.focus: #Si le widget est focus
             for evnt in self.fenetrePrincipale.evenement: #Chercher les évènements du clavier
@@ -542,7 +545,7 @@ class MEntreeTexte(MTexte): #Définition d'une classe représentant une entrée 
                     elif evnt.key == K_RIGHT:
                         caractere = ""
                         self.curseurPosition += 1
-                    if self.caracteresAuthorises == "all" or self.caracteresAuthorises.count(caractere) > 0: #Si le caractère est authorisé
+                    if self.caracteresAutorises == "all" or self.caracteresAutorises.count(caractere) > 0: #Si le caractère est authorisé
                         self.texte = self.texte[0:self.curseurPosition] + caractere + self.texte[self.curseurPosition:len(self.texte)] #Ajouter le caractère au texte
                         self.curseurPosition += len(caractere)
                     self.fenetrePrincipale.evenement.remove(evnt)
