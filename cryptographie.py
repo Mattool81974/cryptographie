@@ -4,7 +4,8 @@ from sys import * #Importer tout les éléments de sys
 import pygame #Import de pygame
 pygame.init() #Lancement de pygame
 from MLib import *
-from cryptage_ROT13 import * #Imporer le code ROT13 fait par Alexis Bergère
+from cryptage_ROT13 import * #Importer le code ROT13 fait par Alexis Bergère
+from cryptage_VIGENERE import * #Importer le code Vigenère fait par Illiam Pont Layus
 
 TAILLE=(500, 500) #Taille de la fenêtre
 
@@ -40,56 +41,54 @@ while True: #Boucle infini tant que l'évènement "quitter" n'est pas vue
     if boutonChiffrer.get_clicke(): #Chiffrer le texte
         if bordureChoixBouton.get_texte() == "Rot13": #Avec rot13
             texte = texteDechiffrer.get_texte() #Obtention du texte à chiffrer
-            resultat = rot13(texte)
+            resultat = rot13(texte) #Chiffrage grâce au code de cryptage_ROT13
             texteChiffrer.set_texte(resultat) #Appliquage du résultat final
         else: #Avec Vigenère
-            texte = texteDechiffrer.get_texte() #Obtention du texte à chiffrer
-            cle = texteCle.get_texte() #Obtention de la clé Vigenère
-            clePosition = 0 #Position du caractère dans la clé lors de l'analyse
+            texteBrut = texteDechiffrer.get_texte() #Obtention du texte à chiffrer
+            texte = ""
+            cle = texteCle.get_texte() #Obtention de la clé
+            majuscules = [] #Liste de tous les index où se trouvent des majuscules dans le texte
+            for c in enumerate(texteBrut): #Convertir le texte en majuscule en gardant la position des majuscules
+                cFinal = c[1]
+                if strAlpha(c[1]):
+                    if strAlphaUpper(c[1]):
+                        majuscules.append(c[0])
+                    cFinal = c[1].upper()
+                texte += cFinal
+            resultatBrut = vigenere(cle, texte) #Chiffrage du texte grâce au code de cryptage_VIGENERE
             resultat = ""
-            for c in texte: #Analyse de chaque caractères
-                if strAlpha(c): #Si le caractère est dans l'alphabet
-                    cleNombre = ord(cle[clePosition]) - 65 #Calcul du caractère de la clé
-                    texteNombre = ord(c) + cleNombre #Appliquation du déchiffrage
-                    if strAlphaLower(c): #Ajuster le caractère
-                        if texteNombre > 122:
-                            texteNombre -= 26
-                    elif strAlphaUpper(c): #Ajuster le caractère
-                        if texteNombre > 91:
-                            texteNombre -= 26
-                    resultat += chr(texteNombre)
-                    clePosition += 1
-                    if clePosition >= len(cle):
-                        clePosition = 0
-                else: #Si il n'est pas dans l'alphabet
-                    resultat += c
+            for c in enumerate(resultatBrut): #Convertir le texte en minuscule et en majuscule
+                cFinal = c[1]
+                if strAlpha(c[1]):
+                    if majuscules.count(c[0]) <= 0:
+                        cFinal = c[1].lower()
+                resultat += cFinal
             texteChiffrer.set_texte(resultat)
     elif boutonDechiffrer.get_clicke(): #Déchiffrer le texte
         if bordureChoixBouton.get_texte() == "Rot13": #Avec rot13
             texte = texteChiffrer.get_texte() #Obtention du texte à chiffrer
-            resultat = rot13Dechiffrage(texte)
+            resultat = rot13Dechiffrage(texte) #Déchiffrage grâce au code de cryptage_ROT13
             texteDechiffrer.set_texte(resultat) #Appliquage du résultat final
         else: #Avec Vigenère
-            texte = texteChiffrer.get_texte() #Obtention du texte à chiffrer
-            cle = texteCle.get_texte() #Obtention de la clé Vigenère
-            clePosition = 0 #Position du caractère dans la clé lors de l'analyse
+            texteBrut = texteChiffrer.get_texte() #Obtention du texte à chiffrer
+            texte = ""
+            cle = texteCle.get_texte() #Obtention de la clé
+            majuscules = [] #Liste de tous les index où se trouvent des majuscules dans le texte
+            for c in enumerate(texteBrut): #Convertir le texte en majuscule en gardant la position des majuscules
+                cFinal = c[1]
+                if strAlpha(c[1]):
+                    if strAlphaUpper(c[1]):
+                        majuscules.append(c[0])
+                    cFinal = c[1].upper()
+                texte += cFinal
+            resultatBrut = decode_vigenere(cle, texte) #Déchiffrage du texte grâce au code de cryptage_VIGENERE
             resultat = ""
-            for c in texte: #Analyse de chaque caractères
-                if strAlpha(c): #Si le caractère est dans l'alphabet
-                    cleNombre = ord(cle[clePosition]) - 65 #Calcul du caractère de la clé
-                    texteNombre = ord(c) - cleNombre #Appliquation du déchiffrage
-                    if strAlphaLower(c): #Ajuster le caractère
-                        if texteNombre < 97:
-                            texteNombre += 26
-                    elif strAlphaUpper(c): #Ajuster le caractère
-                        if texteNombre < 65:
-                            texteNombre += 26
-                    resultat += chr(texteNombre)
-                    clePosition += 1
-                    if clePosition >= len(cle):
-                        clePosition = 0
-                else: #Si il n'est pas dans l'alphabet
-                    resultat += c
+            for c in enumerate(resultatBrut): #Convertir le texte en minuscule et en majuscule
+                cFinal = c[1]
+                if strAlpha(c[1]):
+                    if majuscules.count(c[0]) <= 0:
+                        cFinal = c[1].lower()
+                resultat += cFinal
             texteDechiffrer.set_texte(resultat)
     
     display.flip()
